@@ -1,0 +1,14 @@
+{% extends "testing/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Удаление варианта ответа</h2>
+    <p>Вы уверены, что хотите удалить вариант ответа "{{ object.text }}"?</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Удалить</button>
+        <a href="{% url 'question-update' pk=object.question.pk %}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

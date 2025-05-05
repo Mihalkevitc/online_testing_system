@@ -1,0 +1,128 @@
+{% extends "testing/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0"><i class="bi bi-card-list"></i> Мои тесты</h1>
+        <a href="{% url 'test-create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать тест
+        </a>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Поиск по названию" value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-4">
+            <select name="sort" class="form-select">
+                <option value="">Не сортировать</option>
+                <option value="title" {% if request.GET.sort == 'title' %}selected{% endif %}>По названию</option>
+                <option value="created" {% if request.GET.sort == 'created' %}selected{% endif %}>Сначала новые</option>
+                <option value="created_old" {% if request.GET.sort == 'created_old' %}selected{% endif %}>Сначала старые</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Применить</button>
+        </div>
+    </form>    
+
+    {% if object_list %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for test in object_list %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">{{ test.title }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text text-muted">
+                                {% if test.description %}
+                                    {{ test.description|truncatechars:100 }}
+                                {% else %}
+                                    <span class="fst-italic">Описание отсутствует</span>
+                                {% endif %}
+                            </p>
+                            <ul class="list-group list-group-flush mb-3">
+                                <li class="list-group-item">
+                                    <i class="bi bi-question-circle"></i> Вопросов: {{ test.questions.count }}
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-clock"></i> Макс. балл: {{ test.max_score }}
+                                </li>
+                                {% if test.time_limit %}
+                                <li class="list-group-item">
+                                    <i class="bi bi-stopwatch"></i> Лимит: {{ test.time_limit }} мин
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'test-detail' test.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Просмотр
+                                </a>
+                                <a href="{% url 'test-update' test.pk %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i> Редактировать
+                                </a>
+                                <a href="{% url 'test-assign' test.pk %}" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-send"></i> Назначить
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <div>
+                    <h4 class="alert-heading mb-1">Тесты не найдены</h4>
+                    <p class="mb-0">Вы еще не создали ни одного теста. Нажмите кнопку "Создать тест", чтобы добавить новый.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <nav aria-label="Пагинация">
+        <ul class="pagination justify-content-center mt-4">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Предыдущая">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
+          {% endif %}
+      
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+      
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Следующая">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      
+
+</div>
+{% endblock %}

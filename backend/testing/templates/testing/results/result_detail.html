@@ -1,0 +1,131 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Результат теста{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-clipboard-check"></i>
+                Результат теста "{{ object.test.title }}"
+            </h2>
+            <span class="badge 
+                {% if object.status == 'completed' %}bg-success
+                {% elif object.status == 'needs_review' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ object.get_status_display }}
+            </span>
+        </div>
+        
+        <!-- Общая информация -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Общая информация</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-person"></i> Студент:</strong> {{ object.student.get_full_name }}</p>
+                        <p><strong><i class="bi bi-people"></i> Группа:</strong> 
+                            {% if group %}
+                                {{ group.name }}
+                            {% else %}
+                                Не назначено
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="bi bi-calendar"></i> Дата завершения:</strong> {{ object.completed_at|date:"d.m.Y H:i" }}</p>
+                        <p><strong><i class="bi bi-star"></i> Набранные баллы:</strong> 
+                            <span class="fw-bold">{{ object.score }}</span> из {{ object.test.max_score }}
+                            ({{ percentage }}%)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ответы на вопросы -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-question-circle"></i> Ответы на вопросы</h5>
+            </div>
+            <div class="card-body">
+                {% for answer in object.answers.all %}
+                    <div class="card mb-3 {% if answer.question.question_type == 'text' and answer.score == 0 and object.status == 'needs_review' %}border-warning{% endif %}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Вопрос #{{ answer.question.order }}</h6>
+                            <span class="badge bg-secondary">
+                                {{ answer.question.get_question_type_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ answer.question.text }}</p>
+                            
+                            {% if answer.question.question_type == 'text' %}
+                                <div class="mb-3">
+                                    <label class="form-label">Ответ студента:</label>
+                                    <textarea class="form-control" rows="3" readonly>{{ answer.answer_text }}</textarea>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge {% if answer.score > 0 %}bg-success{% else %}bg-secondary{% endif %}">
+                                            Баллы: {{ answer.score|default:"0" }}
+                                        </span>
+                                    </div>
+                                    {% if user.role == 'teacher' and object.status == 'needs_review' and answer.score == 0 %}
+                                        <a href="{% url 'evaluate-answer' answer.pk %}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-check-circle"></i> Оценить ответ
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="mb-3">
+                                    <label class="form-label">Выбранные варианты:</label>
+                                    <div class="list-group">
+                                        {% for option in answer.question.answer_options.all %}
+                                            <div class="list-group-item 
+                                                {% if option.is_correct %}list-group-item-success
+                                                {% elif option in answer.selected_options.all and not option.is_correct %}list-group-item-danger
+                                                {% endif %}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>{{ option.text }}</span>
+                                                    <div>
+                                                        {% if option in answer.selected_options.all %}
+                                                            <span class="badge bg-primary">Выбрано</span>
+                                                        {% endif %}
+                                                        {% if option.is_correct %}
+                                                            <span class="badge bg-success">Правильный</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge {% if answer.is_correct %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if answer.is_correct %}
+                                            <i class="bi bi-check-circle"></i> Правильно
+                                        {% else %}
+                                            <i class="bi bi-x-circle"></i> Неправильно
+                                        {% endif %}
+                                    </span>
+                                    {% comment %} <span class="badge bg-primary ms-2">
+                                        Баллы: {{ answer.score|default:"0" }}
+                                    </span> {% endcomment %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% if user.role == 'teacher' and object.status == 'needs_review' %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Этот тест содержит непроверенные ответы.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

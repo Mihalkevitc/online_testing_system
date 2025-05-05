@@ -1,0 +1,117 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Мои результаты{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">{% if user.role == 'teacher' %}Результаты студентов{% else %}Мои результаты{% endif %}</h2>
+
+    <form method="get" class="row g-3 mb-3">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Поиск по названию теста" value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-3">
+            <select name="sort" class="form-select">
+                <option value="">Не сортировать</option>
+                <option value="date" {% if request.GET.sort == 'date' %}selected{% endif %}>По дате завершения</option>
+                <option value="score" {% if request.GET.sort == 'score' %}selected{% endif %}>По баллам</option>
+                <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>По названию теста</option>
+                <option value="status" {% if request.GET.sort == 'status' %}selected{% endif %}>По статусу</option>
+            </select>
+        </div>
+        {% if user.role == 'teacher' %}
+            <div class="col-md-3">
+                <select name="group" class="form-select">
+                    <option value="">Все группы</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}" {% if request.GET.group == group.id|stringformat:"s" %}selected{% endif %}>{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Применить</button>
+        </div>
+    </form>    
+
+    {% if object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        {% if user.role == 'teacher' %}
+                            <th>Студент</th>
+                        {% endif %}
+                        <th>Тест</th>
+                        <th>Дата завершения</th>
+                        <th>Баллы</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in object_list %}
+                        <tr>
+                            {% if user.role == 'teacher' %}
+                                <td>{{ result.student.get_full_name|default:result.student.username }}</td>
+                            {% endif %}
+                            <td>{{ result.test.title }}</td>
+                            <td>{{ result.completed_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ result.score }}/{{ result.test.max_score }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if result.status == 'completed' %}bg-success
+                                    {% elif result.status == 'needs_review' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ result.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'result-detail' result.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Просмотр
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            {% if user.role == 'teacher' %}Нет результатов для отображения.{% else %}У вас пока нет результатов тестов.{% endif %}
+        </div>
+    {% endif %}
+    {% if is_paginated %}
+        <nav aria-label="Навигация по страницам">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Назад</span>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}&{% endif %}page={{ page_obj.next_page_number }}">Вперёд</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Вперёд</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+{% endif %}
+
+{% endblock %}

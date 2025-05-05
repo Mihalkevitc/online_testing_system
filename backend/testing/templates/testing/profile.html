@@ -1,0 +1,69 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-badge me-2"></i>
+                        {{ welcome_message }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email</label>
+                            <input type="email" name="email" value="{{ form.email.value|default:user.email }}" 
+                                   class="form-control" id="id_email" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_first_name" class="form-label">Имя</label>
+                            <input type="text" name="first_name" 
+                                   value="{{ form.first_name.value|default:user.first_name }}" 
+                                   class="form-control" id="id_first_name" required>
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.first_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_last_name" class="form-label">Фамилия</label>
+                            <input type="text" name="last_name" 
+                                   value="{{ form.last_name.value|default:user.last_name }}" 
+                                   class="form-control" id="id_last_name" required>
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.last_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

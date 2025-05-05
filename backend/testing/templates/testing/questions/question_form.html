@@ -1,0 +1,123 @@
+{% extends "testing/base.html" %}
+
+{% block title %}{% if object %}Редактирование вопроса{% else %}Создание вопроса{% endif %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-question-circle"></i>
+                        {% if object %}Редактирование вопроса{% else %}Новый вопрос для теста "{{ test.title }}"{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Текст вопроса -->
+                        <div class="mb-3">
+                            <label for="id_text" class="form-label">Текст вопроса</label>
+                            <textarea name="text" class="form-control" id="id_text" rows="4" required>{{ form.text.value|default:'' }}</textarea>
+                            {% if form.text.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.text.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Тип вопроса -->
+                        <div class="mb-3">
+                            <label for="id_question_type" class="form-label">Тип вопроса</label>
+                            <select name="question_type" class="form-select" id="id_question_type" required>
+                                {% for value, label in form.fields.question_type.choices %}
+                                    <option value="{{ value }}" {% if form.question_type.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Порядковый номер -->
+                        <div class="mb-4">
+                            <label for="id_order" class="form-label">Порядковый номер</label>
+                            <input type="number" name="order" class="form-control" id="id_order" 
+                                   value="{{ form.order.value|default:'0' }}" min="0" required>
+                        </div>
+                        
+                        <!-- Кнопки действий -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                {% if object %}Сохранить изменения{% else %}Создать вопрос{% endif %}
+                            </button>
+                            {% if object %}
+                                <a href="{% url 'test-detail' object.test.pk %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Отмена
+                                </a>
+                            {% else %}
+                                <a href="{% url 'test-detail' test.pk %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Отмена
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+
+                    <!-- Блок для управления вариантами ответов -->
+                    {% if object and object.question_type != 'text' %}
+                    <hr>
+                    <div class="mt-4">
+                        <h5>Варианты ответов</h5>
+                        <a href="{% url 'answer-create' question_pk=object.pk %}" class="btn btn-sm btn-success mb-3">
+                            <i class="bi bi-plus-circle"></i> Добавить вариант
+                        </a>
+
+                        {% if object.answer_options.all %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Текст ответа</th>
+                                        <th>Правильный</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for option in object.answer_options.all %}
+                                    <tr>
+                                        <td>{{ option.text }}</td>
+                                        <td>
+                                            {% if option.is_correct %}
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'answer-update' pk=option.pk %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'answer-delete' pk=option.pk %}" class="btn btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            Нет добавленных вариантов ответа
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

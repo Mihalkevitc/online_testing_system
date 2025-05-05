@@ -1,0 +1,118 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Прохождение теста {{ assignment.test.title }}{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .question-card {
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #0d6efd;
+        }
+        .time-left {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: rgb(255, 255, 255);
+        }
+        textarea {
+            height: 70px;
+            width: 100%;
+            min-height: 70px; /* Фиксированная минимальная высота */
+            resize: vertical; /* Можно изменять размер только по вертикали */
+            margin-top: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    {% if time_left %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeLeftElement = document.getElementById('time-left');
+            const form = document.querySelector('form');
+            let timeLeft = Math.round({{ time_left }});
+            
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins} мин. ${secs.toString().padStart(2, '0')} сек.`;
+            }
+            
+            timeLeftElement.textContent = formatTime(timeLeft);
+            
+            const timer = setInterval(function() {
+                timeLeft -= 1;
+                timeLeftElement.textContent = formatTime(timeLeft);
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    
+                    // Получаем assignment_pk из URL
+                    const urlParts = window.location.pathname.split('/');
+                    const assignmentPk = urlParts[2]; // /test/31/take/ -> 31
+                    
+                    // Создаем новую форму для автоматической отправки
+                    const autoSubmitForm = document.createElement('form');
+                    autoSubmitForm.method = 'POST';
+                    autoSubmitForm.action = `/test/${assignmentPk}/auto-submit/`;
+                    
+                    // Добавляем CSRF токен
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = '{{ csrf_token }}';
+                    autoSubmitForm.appendChild(csrfInput);
+                    
+                    // Добавляем все ответы из основной формы
+                    const formData = new FormData(form);
+                    for (let [name, value] of formData.entries()) {
+                        if (name.startsWith('question_')) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            autoSubmitForm.appendChild(input);
+                        }
+                    }
+                    
+                    document.body.appendChild(autoSubmitForm);
+                    autoSubmitForm.submit();
+                }
+            }, 1000);
+        });
+    </script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ assignment.test.title }}</h4>
+                {% if time_left %}
+                    <div class="time-left">Осталось: <span id="time-left"></span></div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if assignment.test.description %}
+                <p>{{ assignment.test.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="card question-card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ field.label }}</h5>
+                    {{ field }}
+                </div>
+            </div>
+        {% endfor %}
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">Отправить тест</button>
+        </div>
+    </form>
+{% endblock %}

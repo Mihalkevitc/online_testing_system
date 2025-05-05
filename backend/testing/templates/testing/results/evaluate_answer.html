@@ -1,0 +1,75 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Оценка ответа{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Оценка ответа</h4>
+                        <span class="badge bg-dark">
+                            Тест: {{ object.result.test.title }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5 class="card-title">Студент: {{ object.result.student.get_full_name }}</h5>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Вопрос</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ object.question.text }}</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">Ответ студента</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="studentAnswer" style="height: 150px" readonly>{{ object.answer_text }}</textarea>
+                                    <label for="studentAnswer">Текст ответа</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="id_score" class="form-label">Оценка ответа</label>
+                            <div class="input-group">
+                                <input type="number" name="score" class="form-control" id="id_score" 
+                                       value="{{ form.score.value|default:'0' }}" min="0" max="1" required>
+                                <span class="input-group-text">из 1 балла</span>
+                            </div>
+                            <div class="form-text">
+                                Оцените ответ студента. Максимальный балл за вопрос: 1
+                            </div>
+                            {% if form.score.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.score.errors|join:", " }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle"></i> Сохранить оценку
+                            </button>
+                            <a href="{% url 'result-detail' object.result.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Вернуться к результату
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

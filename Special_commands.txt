@@ -1,0 +1,8 @@
+Для Windows: Скачайте установщик с официального сайта: 
+https://graphviz.org/download/ и добавьте путь к Graphviz в системную переменную PATH.
+
+Сгенерируйте файл .dot, описывающий структуру моделей:
+python manage.py graph_models -a > erd.dot
+
+Преобразуйте .dot файл в изображение (например, PNG):
+dot -Tpng erd.dot -o erd.png

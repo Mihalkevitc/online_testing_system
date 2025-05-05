@@ -1,0 +1,56 @@
+{% comment %} {% extends "testing/base.html" %}
+
+{% block title %}Результаты группы {{ group.name }}{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Результаты группы "{{ group.name }}"</h2>
+        <a href="{% url 'group-detail' group.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к группе
+        </a>
+    </div>
+    
+    {% if object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Студент</th>
+                        <th>Тест</th>
+                        <th>Дата завершения</th>
+                        <th>Баллы</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in object_list %}
+                        <tr>
+                            <td>{{ result.student.get_full_name|default:result.student.username }}</td>
+                            <td>{{ result.test.title }}</td>
+                            <td>{{ result.completed_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ result.score }}/{{ result.test.max_score }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if result.status == 'completed' %}bg-success
+                                    {% elif result.status == 'needs_review' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ result.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'result-detail' result.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Просмотр
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            В этой группе пока нет результатов тестов.
+        </div>
+    {% endif %}
+{% endblock %} {% endcomment %}

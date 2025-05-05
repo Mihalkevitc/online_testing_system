@@ -1,0 +1,43 @@
+{% extends "testing/base.html" %}
+
+{% block title %}{% if object %}Редактирование теста{% else %}Создание теста{% endif %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{% if object %}Редактирование теста{% else %}Создание теста{% endif %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Название теста</label>
+                            <input type="text" name="title" class="form-control" id="id_title" 
+                                   value="{{ form.title.value|default:'' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Описание</label>
+                            <textarea name="description" class="form-control" id="id_description" 
+                                      rows="3">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_time_limit" class="form-label">Лимит времени (минуты)</label>
+                            <input type="number" name="time_limit" class="form-control" id="id_time_limit" 
+                                   value="{{ form.time_limit.value|default:'' }}" min="1">
+                            <div class="form-text">Оставьте пустым, если нет ограничения по времени</div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                {% if object %}Сохранить{% else %}Создать{% endif %}
+                            </button>
+                            <a href="{% if object %}{% url 'test-detail' object.pk %}{% else %}{% url 'test-list' %}{% endif %}" 
+                               class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

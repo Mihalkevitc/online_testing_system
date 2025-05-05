@@ -1,0 +1,50 @@
+{% extends "testing/base.html" %}
+{% load custom_filters %}
+
+{% block title %}Подтверждение отправки теста{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Подтверждение отправки теста</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="mb-4">{{ test.title }}</h5>
+                    
+                    <div class="mb-4">
+                        <h6>Статус ответов:</h6>
+                        {% for question in questions %}
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2">Вопрос {{ forloop.counter }}</h6>
+                                    <p class="card-text">{{ question.text }}</p>
+                                    <p class="card-text fw-bold">
+                                        {% with question.id|stringformat:"s" as qid_str %}
+                                            {% with "question_"|add:qid_str as answer_key %}
+                                                {% if answers|get_item:answer_key %}
+                                                    <span class="text-success">✓ Ответ сохранён</span>
+                                                {% else %}
+                                                    <span class="text-danger">× Нет ответа</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endwith %}
+                                    </p>                                  
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Подтвердить отправку</button>
+                            <a href="{% url 'test-taking' assignment.pk %}" class="btn btn-secondary">Вернуться к тесту</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

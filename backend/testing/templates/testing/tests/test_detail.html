@@ -1,0 +1,106 @@
+{% extends "testing/base.html" %}
+
+{% block title %}Тест {{ object.title }}{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Тест: {{ object.title }}</h2>
+        <div>
+            {% if user.role == 'teacher' %}
+                <a href="{% url 'test-update' object.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                <a href="{% url 'test-assign' object.pk %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-send"></i> Назначить группе
+                </a>
+                <a href="{% url 'question-create' object.pk %}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus-lg"></i> Добавить вопрос
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Информация о тесте</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Описание:</strong> {{ object.description|default:"Нет описания" }}</p>
+            <p><strong>Создатель:</strong> {{ object.created_by.get_full_name|default:object.created_by.username }}</p>
+            <p><strong>Дата создания:</strong> {{ object.created_at|date:"d.m.Y H:i" }}</p>
+            <p><strong>Лимит времени:</strong> {% if object.time_limit %}{{ object.time_limit }} минут{% else %}Нет ограничения{% endif %}</p>
+            <p><strong>Максимальный балл:</strong> {{ object.max_score }}</p>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Вопросы теста</h5>
+        </div>
+        <div class="card-body">
+            {% if object.questions.all %}
+                <div class="list-group">
+                    {% for question in object.questions.all %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">Вопрос #{{ question.order }}</h6>
+                                    <p class="mb-1">{{ question.text }}</p>
+                                    <small class="text-muted">
+                                        Тип: {{ question.get_question_type_display }}
+                                        | Вариантов ответа: {{ question.answer_options.count }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'question-update' question.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'question-delete' question.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    В этом тесте пока нет вопросов. 
+                    <a href="{% url 'question-create' object.pk %}">Добавьте первый вопрос</a>.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if user.role == 'teacher' and object.assignments.all %}
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Назначения теста</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Группа</th>
+                                <th>Дата назначения</th>
+                                <th>Срок выполнения</th>
+                                <th>Результатов</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in object.assignments.all %}
+                                <tr>
+                                    <td>{{ assignment.group.name }}</td>
+                                    <td>{{ assignment.assigned_at|date:"d.m.Y H:i" }}</td>
+                                    <td>{{ assignment.deadline|date:"d.m.Y H:i" }}</td>
+                                    <td>{{ assignment.test.results.count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

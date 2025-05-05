@@ -1,0 +1,30 @@
+{% extends "testing/base.html" %}
+
+{% block title %}{% if object %}Редактирование группы{% else %}Создание группы{% endif %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{% if object %}Редактирование группы{% else %}Создание группы{% endif %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label">Название группы</label>
+                            <input type="text" name="name" class="form-control" id="id_name" 
+                                   value="{{ form.name.value|default:'' }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {% if object %}Сохранить{% else %}Создать{% endif %}
+                        </button>
+                        <a href="{% if object %}{% url 'group-detail' object.pk %}{% else %}{% url 'group-list' %}{% endif %}" 
+                           class="btn btn-secondary">Отмена</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
