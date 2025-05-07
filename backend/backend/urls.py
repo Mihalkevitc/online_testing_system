@@ -33,7 +33,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     # path('register/', views.RegisterView.as_view(), name='register'),
     path('register/', RegisterView.as_view(), name='register'),
-
     
     # Профиль пользователя
     path('profile/', views.ProfileView.as_view(), name='profile'),
@@ -42,7 +41,7 @@ urlpatterns = [
     path('groups/', views.StudyGroupListView.as_view(), name='group-list'),
     path('groups/create/', views.StudyGroupCreateView.as_view(), name='group-create'),
     path('groups/<int:pk>/', views.StudyGroupDetailView.as_view(), name='group-detail'),
-    path('groups/<int:pk>/update/', views.StudyGroupUpdateView.as_view(), name='group-update'),  # Добавьте эту строку
+    path('groups/<int:pk>/update/', views.StudyGroupUpdateView.as_view(), name='group-update'),
     path('groups/<int:pk>/add-student/', views.AddStudentToGroupView.as_view(), name='group-add-student'),
     
     # Тесты

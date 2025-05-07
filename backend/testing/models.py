@@ -28,7 +28,7 @@ class User(AbstractUser):
     
     def get_full_name(self):
         """
-        Гарантированно возвращает строку с именем пользователя
+        Гарантированно возвращает строку с именем пользователя или email
         """
         name_parts = []
         if self.last_name:

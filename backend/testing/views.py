@@ -384,7 +384,7 @@ class AssignedTestListView(LoginRequiredMixin, StudentRequiredMixin, ListView):
         return TestAssignment.objects.filter(
             group__students__student=self.request.user,
             deadline__gte=now
-        ).select_related('test', 'group').annotate(  # Все методы в одной строке
+        ).select_related('test', 'group').annotate( 
             has_result=Exists(
                 TestResult.objects.filter(
                     test=OuterRef('test'),
