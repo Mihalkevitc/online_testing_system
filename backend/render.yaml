@@ -3,9 +3,10 @@ services:
     name: online-testing-system
     env: docker
     plan: free
+    repo: https://github.com/Mihalkevitc/online_testing_system
     branch: main
-    buildCommand: ""
-    startCommand: ""
+    dockerfilePath: ./Dockerfile
+    rootDir: backend
     envVars:
       - key: DATABASE_URL
         fromDatabase:
